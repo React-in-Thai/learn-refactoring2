@@ -90,16 +90,16 @@ export default function useResizeHandle(
     function resizeObject(event: KeyboardEvent) {
       if (!target.current) return;
       const objectRect = target.current.getBoundingClientRect();
-      let diffSize = event.altKey ? FIX_ALT_SIZE : keyboardAdjustSize;
+      let adjustSize = event.altKey ? FIX_ALT_SIZE : keyboardAdjustSize;
       if (event.shiftKey) {
-        diffSize = diffSize * MULTIPLY_SIZE;
+        adjustSize = adjustSize * MULTIPLY_SIZE;
       }
       if (event.key === 'ArrowLeft') {
-        const newWidth = objectRect.width - diffSize;
+        const newWidth = objectRect.width - adjustSize;
         resizeTargetRect(newWidth)
       }
       if (event.key === 'ArrowRight') {
-        const newWidth = objectRect.width + diffSize;
+        const newWidth = objectRect.width + adjustSize;
         resizeTargetRect(newWidth)
       }
     }
