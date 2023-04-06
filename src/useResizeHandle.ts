@@ -1,17 +1,27 @@
 import React from "react";
 
-export default function useResizeHandle(target, options) {
+export default function useResizeHandle(
+  target: React.MutableRefObject<HTMLDivElement | null>,
+  options?: { minWidth?: string; maxWidth?: string }
+) {
   const { minWidth = "0px", maxWidth = "100%" } = options || {};
   const [dragging, setDragging] = React.useState(false);
   const [dragOffset, setDragOffset] = React.useState(0);
-  console.log("dragOffset", dragOffset);
-  const isTouchEvent = (event) => {
-    return Boolean(event.touches && event.touches.length);
+  const isTouchEvent = (
+    event: MouseEvent | TouchEvent
+  ): event is TouchEvent => {
+    return Boolean(
+      (event as TouchEvent).touches && (event as TouchEvent).touches.length
+    );
   };
-  const isMouseEvent = (event) => {
-    return Boolean(event.clientX || event.clientX === 0);
+  const isMouseEvent = (
+    event: MouseEvent | TouchEvent
+  ): event is MouseEvent => {
+    return Boolean(
+      (event as MouseEvent).clientX || (event as MouseEvent).clientX === 0
+    );
   };
-  const getClientX = React.useCallback((event) => {
+  const getClientX = React.useCallback((event: MouseEvent | TouchEvent) => {
     let clientX;
     if (isMouseEvent(event)) {
       clientX = event.clientX;
@@ -19,16 +29,16 @@ export default function useResizeHandle(target, options) {
     if (isTouchEvent(event)) {
       clientX = event.touches[0].clientX;
     }
-    return clientX;
+    return clientX as number;
   }, []);
-  const handleStart = (event) => {
+  const handleStart = (event: React.MouseEvent | React.TouchEvent) => {
     const clientX = getClientX(event.nativeEvent);
-    const rect = event.target.getBoundingClientRect();
+    const rect = (event.target as HTMLElement).getBoundingClientRect();
     setDragging(true);
     setDragOffset(rect.width - (clientX - rect.x));
   };
   React.useEffect(() => {
-    function resizeObject(event) {
+    function resizeObject(event: MouseEvent | TouchEvent) {
       if (event.cancelable) {
         event.preventDefault();
       }
