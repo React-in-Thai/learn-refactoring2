@@ -6,6 +6,7 @@ function App() {
   const container = React.useRef(null);
   const { dragging, getDragHandlers } = useResizeHandle(container, {
     minWidth: "100px",
+    keyboardAdjustSize: 5,
   });
 
   return (

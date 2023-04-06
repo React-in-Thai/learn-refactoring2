@@ -1,12 +1,20 @@
 import React from "react";
 
+const MULTIPLY_SIZE = 10;
+const FIX_ALT_SIZE = 1;
+
 export default function useResizeHandle(
   target: React.MutableRefObject<HTMLDivElement | null>,
-  options?: { minWidth?: string; maxWidth?: string }
+  options?: {
+    minWidth?: string;
+    maxWidth?: string;
+    keyboardAdjustSize?: number;
+  }
 ) {
-  const { minWidth = "0px", maxWidth = "100%" } = options || {};
+  const { minWidth = "0px", maxWidth = "100%", keyboardAdjustSize = 1 } = options || {};
   const [dragging, setDragging] = React.useState(false);
   const [dragOffset, setDragOffset] = React.useState(0);
+  const [focusing, setFocusing] = React.useState(false);
   const isTouchEvent = (
     event: MouseEvent | TouchEvent
   ): event is TouchEvent => {
@@ -37,6 +45,13 @@ export default function useResizeHandle(
     setDragging(true);
     setDragOffset(rect.width - (clientX - rect.x));
   };
+  const resizeTargetRect = React.useCallback((newWidth: number) => {
+    if (target.current) {
+      target.current.style.width = `clamp(${minWidth}, ${Math.floor(
+        newWidth
+      )}px, ${maxWidth})`;
+    }
+  }, [minWidth, maxWidth, target])
   React.useEffect(() => {
     function resizeObject(event: MouseEvent | TouchEvent) {
       if (event.cancelable) {
@@ -47,9 +62,7 @@ export default function useResizeHandle(
       if (target.current && dragging && clientX) {
         const objectRect = target.current.getBoundingClientRect();
         const newWidth = clientX - objectRect.left + dragOffset;
-        target.current.style.width = `clamp(${minWidth}, ${Math.floor(
-          newWidth
-        )}px, ${maxWidth})`;
+        resizeTargetRect(newWidth)
       }
     }
     function stopResize() {
@@ -69,12 +82,46 @@ export default function useResizeHandle(
       };
     }
     return () => {};
-  }, [dragOffset, dragging, getClientX, maxWidth, minWidth, target]);
+  }, [dragOffset, dragging, getClientX, target]);
+  const handleFocusStart = () => {
+    setFocusing(true);
+  }
+  React.useEffect(() => {
+    function resizeObject(event: KeyboardEvent) {
+      if (!target.current) return;
+      const objectRect = target.current.getBoundingClientRect();
+      let diffSize = event.altKey ? FIX_ALT_SIZE : keyboardAdjustSize;
+      if (event.shiftKey) {
+        diffSize = diffSize * MULTIPLY_SIZE;
+      }
+      if (event.key === 'ArrowLeft') {
+        const newWidth = objectRect.width - diffSize;
+        resizeTargetRect(newWidth)
+      }
+      if (event.key === 'ArrowRight') {
+        const newWidth = objectRect.width + diffSize;
+        resizeTargetRect(newWidth)
+      }
+    }
+    function stopFocus() {
+      setFocusing(false);
+    }
+    if (focusing) {
+      document.addEventListener("keydown", resizeObject);
+      document.addEventListener("focusout", stopFocus);
+      return () => {
+        document.removeEventListener("keydown", resizeObject);
+        document.removeEventListener("focusout", stopFocus);
+      };
+    }
+    return () => {};
+  }, [focusing, target]);
   return {
     dragging,
     getDragHandlers: () => ({
       onTouchStart: handleStart,
       onMouseDown: handleStart,
+      onFocus: handleFocusStart,
     }),
   };
 }
