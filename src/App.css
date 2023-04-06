@@ -1,0 +1,29 @@
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.frame {
+  height: 30vh;
+  background-color: #e5e5e5;
+  position: relative;
+  border-radius: 12px;
+  width: 300px;
+  text-align: center;
+  margin: auto;
+}
+
+.drag-handle {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateX(50%);
+  color: black;
+  border: 1px solid #888;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  padding: 0;
+}
